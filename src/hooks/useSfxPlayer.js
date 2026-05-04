@@ -1,6 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+
+/** useLayoutEffect is skipped on the server; avoids SSR warnings while warming before paint on the client. */
+const useWarmOnClient =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 const SFX_VOLUME = 0.8;
 
@@ -32,7 +36,7 @@ export function useSfxPlayer(sfxClips) {
   /** @type {React.MutableRefObject<Map<string, SfxCacheEntry>>} */
   const cacheRef = useRef(new Map());
 
-  useEffect(() => {
+  useWarmOnClient(() => {
     const cache = cacheRef.current;
     const nextIds = new Set(sfxClips.map((c) => c.id));
 
