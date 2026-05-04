@@ -2,15 +2,20 @@
 
 import { Volume2 } from "lucide-react";
 
-export default function VolumeSlider({ value, onChange }) {
+export default function VolumeSlider({
+  value,
+  onChange,
+  inputId = "music-volume",
+  label = "Music volume",
+}) {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2">
       <Volume2 className="h-4 w-4 shrink-0 text-neutral-500" aria-hidden />
-      <label className="sr-only" htmlFor="music-volume">
-        Music volume
+      <label className="sr-only" htmlFor={inputId}>
+        {label}
       </label>
       <input
-        id="music-volume"
+        id={inputId}
         type="range"
         min={0}
         max={1}

@@ -1,21 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 /** useLayoutEffect is skipped on the server; avoids SSR warnings while warming before paint on the client. */
 const useWarmOnClient =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-const SFX_VOLUME = 0.8;
-
 /**
  * @typedef {{ src: string; audio: HTMLAudioElement }} SfxCacheEntry
  */
 
-function createWarmedAudio(src) {
+function createWarmedAudio(src, volume) {
   const audio = new Audio();
   audio.preload = "auto";
-  audio.volume = SFX_VOLUME;
+  audio.volume = volume;
   audio.src = src;
   audio.load();
   return audio;
@@ -35,6 +39,7 @@ function disposeEntry(entry) {
 export function useSfxPlayer(sfxClips) {
   /** @type {React.MutableRefObject<Map<string, SfxCacheEntry>>} */
   const cacheRef = useRef(new Map());
+  const [volume, setVolumeState] = useState(0.8);
 
   useWarmOnClient(() => {
     const cache = cacheRef.current;
@@ -48,8 +53,10 @@ export function useSfxPlayer(sfxClips) {
         }
         cache.set(clip.id, {
           src: clip.src,
-          audio: createWarmedAudio(clip.src),
+          audio: createWarmedAudio(clip.src, volume),
         });
+      } else {
+        existing.audio.volume = volume;
       }
     }
 
@@ -59,23 +66,34 @@ export function useSfxPlayer(sfxClips) {
         cache.delete(id);
       }
     }
-  }, [sfxClips]);
+  }, [sfxClips, volume]);
 
-  const play = useCallback((clip) => {
-    const cache = cacheRef.current;
-    let entry = cache.get(clip.id);
-    if (!entry || entry.src !== clip.src) {
-      if (entry) {
-        disposeEntry(entry);
-      }
-      entry = { src: clip.src, audio: createWarmedAudio(clip.src) };
-      cache.set(clip.id, entry);
+  const setVolume = useCallback((v) => {
+    const next = Math.min(1, Math.max(0, v));
+    setVolumeState(next);
+    for (const entry of cacheRef.current.values()) {
+      entry.audio.volume = next;
     }
-    const { audio } = entry;
-    audio.volume = SFX_VOLUME;
-    audio.currentTime = 0;
-    void audio.play().catch(() => {});
   }, []);
 
-  return { play };
+  const play = useCallback(
+    (clip) => {
+      const cache = cacheRef.current;
+      let entry = cache.get(clip.id);
+      if (!entry || entry.src !== clip.src) {
+        if (entry) {
+          disposeEntry(entry);
+        }
+        entry = { src: clip.src, audio: createWarmedAudio(clip.src, volume) };
+        cache.set(clip.id, entry);
+      }
+      const { audio } = entry;
+      audio.volume = volume;
+      audio.currentTime = 0;
+      void audio.play().catch(() => {});
+    },
+    [volume]
+  );
+
+  return { play, volume, setVolume };
 }

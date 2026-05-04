@@ -31,24 +31,26 @@ export default function HotseatClient({ musicTracks, sfxClips }) {
               audio files (any extension or none), then refresh.
             </p>
           ) : (
-            <div className="mb-4 grid grid-cols-2 gap-3">
-              {musicTracks.map((t) => (
-                <MusicButton
-                  key={t.id}
-                  track={t}
-                  isPlaying={music.currentTrackId === t.id}
-                  onToggle={() => music.toggle(t)}
+            <>
+              <div className="mb-4 flex items-center gap-4">
+                <LoopToggle
+                  isOn={music.isLooping}
+                  onToggle={() => music.setLooping(!music.isLooping)}
                 />
-              ))}
-            </div>
+                <VolumeSlider value={music.volume} onChange={music.setVolume} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {musicTracks.map((t) => (
+                  <MusicButton
+                    key={t.id}
+                    track={t}
+                    isPlaying={music.currentTrackId === t.id}
+                    onToggle={() => music.toggle(t)}
+                  />
+                ))}
+              </div>
+            </>
           )}
-          <div className="flex items-center gap-4">
-            <LoopToggle
-              isOn={music.isLooping}
-              onToggle={() => music.setLooping(!music.isLooping)}
-            />
-            <VolumeSlider value={music.volume} onChange={music.setVolume} />
-          </div>
         </section>
 
         <section>
@@ -62,11 +64,21 @@ export default function HotseatClient({ musicTracks, sfxClips }) {
               then refresh.
             </p>
           ) : (
-            <div className="grid grid-cols-3 gap-2">
-              {sfxClips.map((c) => (
-                <SfxButton key={c.id} clip={c} onPlay={() => sfx.play(c)} />
-              ))}
-            </div>
+            <>
+              <div className="mb-4">
+                <VolumeSlider
+                  value={sfx.volume}
+                  onChange={sfx.setVolume}
+                  inputId="sfx-volume"
+                  label="Sound effects volume"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {sfxClips.map((c) => (
+                  <SfxButton key={c.id} clip={c} onPlay={() => sfx.play(c)} />
+                ))}
+              </div>
+            </>
           )}
         </section>
       </div>
