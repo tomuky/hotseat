@@ -9,7 +9,7 @@ import { useSfxPlayer } from "@/hooks/useSfxPlayer";
 
 export default function HotseatClient({ musicTracks, sfxClips }) {
   const music = useMusicPlayer();
-  const sfx = useSfxPlayer();
+  const sfx = useSfxPlayer(sfxClips);
 
   return (
     <main className="hotseat-root min-h-dvh p-4 text-neutral-200 sm:p-6">
